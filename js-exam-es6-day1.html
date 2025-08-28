@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JavaScript — ES6 Interactive Exam (30 MCQs · 20 Output · 5 Code)</title>
+<style>
+  :root{
+    --ink:#0f172a; --sub:#64748b; --ok:#16a34a; --bad:#ef4444;
+    --panel:#0b1020; --card:#0f172a; --muted:#1e293b; --brand:#60a5fa;
+  }
+  html,body{margin:0;background:#0b1020;color:#e5e7eb;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+  .wrap{max-width:1100px;margin:28px auto;padding:0 16px;}
+  h1{font-size:34px;margin:0 0 10px;line-height:1.2}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 18px}
+  .chip{background:#111827;border:1px solid #1f2937;color:#cbd5e1;padding:8px 12px;border-radius:999px;font-size:14px}
+  .chip b{color:#fff}
+  .actions{display:flex;gap:10px;margin-left:auto}
+  button{background:#1f2937;border:1px solid #334155;color:#e5e7eb;border-radius:10px;padding:10px 14px;cursor:pointer}
+  button:hover{background:#334155}
+  section{background:#0f172a;border:1px solid #1f2937;border-radius:14px;margin:16px 0;padding:18px 18px 6px}
+  section>h2{margin:0 0 6px;font-size:22px}
+  .q{border-top:1px solid #1f2937;padding:16px 0}
+  .q:first-child{border-top:none}
+  .q h3{margin:0 0 10px;font-size:16px;color:#e2e8f0;font-weight:600}
+  .choices{display:grid;gap:8px;margin:8px 0}
+  .choices label{display:flex;gap:8px;align-items:flex-start;background:#111827;border:1px solid #1f2937;padding:10px;border-radius:10px;cursor:pointer}
+  code,pre{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:8px 10px;color:#cbd5e1}
+  pre{overflow:auto}
+  .ans{margin-top:10px;display:none;background:#0b1020;border:1px dashed #334155;padding:10px;border-radius:10px}
+  .reveal{margin-top:10px}
+  .ok{outline:2px solid var(--ok)}
+  .bad{outline:2px solid var(--bad)}
+  .note{color:#94a3b8;font-size:13px;margin-top:2px}
+  .pill{display:inline-block;border-radius:999px;padding:.15rem .5rem;border:1px solid #334155;background:#0b1020;color:#cbd5e1;font-size:12px}
+  .irow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .irow input[type="text"]{flex:1 1 260px;background:#111827;border:1px solid #1f2937;color:#e5e7eb;border-radius:10px;padding:10px}
+  textarea{width:100%;min-height:150px;background:#0b1020;border:1px solid #1f2937;color:#e5e7eb;border-radius:10px;padding:10px;font-family:ui-monospace,Consolas,monospace}
+  .small{font-size:13px;color:#94a3b8}
+  .pass{color:var(--ok)} .fail{color:var(--bad)}
+  .footer{margin:16px 0 28px;color:#94a3b8;font-size:13px}
+  .hint{color:#a3e635}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>JavaScript — ES6 Interactive Exam <span class="small">(30 MCQs · 20 Output · 5 Code)</span></h1>
+  <div class="chips">
+    <div class="chip" id="mcqChip">MCQs: <b>0/30</b></div>
+    <div class="chip" id="outChip">Output: <b>0/20</b></div>
+    <div class="chip" id="codeChip">Code: <b>0/5</b></div>
+    <div class="chip" id="allChip">Overall: <b>0/55</b></div>
+    <div class="actions">
+      <button id="submitAll">Submit All</button>
+      <button id="resetAll">Reset</button>
+    </div>
+  </div>
+
+  <section id="mcqSec">
+    <h2>1) Multiple-Choice Questions (30)</h2>
+    <div id="mcqBox"></div>
+  </section>
+
+  <section id="outSec">
+    <h2>2) What’s the Output? (20)</h2>
+    <p class="note">Type the console output exactly. Whitespace is normalized (extra spaces/newlines don’t matter).</p>
+    <div id="outBox"></div>
+  </section>
+
+  <section id="codeSec">
+    <h2>3) Code Writing (5)</h2>
+    <p class="note">Write the function exactly as specified. On submit, tests will run. You can reveal a sample solution if you get stuck.</p>
+    <div id="codeBox"></div>
+  </section>
+
+  <div class="footer">
+    Focus: dialogs/strings were avoided; emphasis on <span class="pill">let/const</span> <span class="pill">template literals</span> <span class="pill">default params</span> <span class="pill">rest/spread</span> <span class="pill">arrow functions</span> <span class="pill">enhanced object literals</span>. Built from your slides & lab. Good luck!
+  </div>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+function el(tag, attrs={}, html=''){
+  const n=document.createElement(tag);
+  for(const k in attrs){ if(k==='class') n.className=attrs[k]; else n.setAttribute(k, attrs[k]); }
+  if(html!==undefined) n.innerHTML=html;
+  return n;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+// Whitespace/line tolerant normalization (regexes are short & safe)
+function norm(s){
+  s = String(s);
+  s = s.replace(/\r/g,'');        // drop CRs
+  s = s.replace(/\s+/g,' ').trim(); // collapse whitespace
+  return s.toLowerCase();
+}
+function updateChips(mcq=0, out=0, code=0){
+  const mcqT = MCQS.length, outT = OUTPUTS.length, codeT = CODES.length;
+  document.getElementById('mcqChip').innerHTML = `MCQs: <b>${mcq}/${mcqT}</b>`;
+  document.getElementById('outChip').innerHTML = `Output: <b>${out}/${outT}</b>`;
+  document.getElementById('codeChip').innerHTML = `Code: <b>${code}/${codeT}</b>`;
+  document.getElementById('allChip').innerHTML = `Overall: <b>${mcq+out+code}/${mcqT+outT+codeT}</b>`;
+}
+
+/* ---------- Question Banks ---------- */
+// 30 MCQs
+const MCQS = [
+  {q:`Accessing a <code>let</code> variable before its declaration results in:`, a:['<code>undefined</code>','<code>null</code>','ReferenceError','TypeError'], c:2},
+  {q:`Which is true about <code>const</code>?`, a:['It is function-scoped.','It creates a property on <code>window</code>.','It’s block-scoped and cannot be re-assigned.','It prevents object property changes.'], c:2},
+  {q:`In the global scope, which adds a property on <code>window</code>?`, a:['<code>var x=1</code>','<code>let x=1</code>','<code>const x=1</code>','None'], c:0},
+  {q:`After this code, what is true?<pre>for (var i=0;i&lt;3;i++){}; console.log(typeof i);</pre>`, a:['Throws','<code>undefined</code>','<code>number</code>','<code>object</code>'], c:2},
+  {q:`Template literals are delimited by:`, a:['" double quotes','\' single quotes','` backticks','~ tildes'], c:2},
+  {q:`Interpolation inside template literals uses:`, a:['<code>${...}</code>','<code>$(...)</code>','<code>#{...}</code>','<code>%(...)</code>'], c:0},
+  {q:`Multiline strings with template literals require:`, a:['<code>\\</code> at line end','No special syntax','<code>\\n</code> everywhere','They are not supported'], c:1},
+  {q:`Which default parameters declaration is invalid?`, a:['<code>function f(a=1,b=2){}</code>','<code>function f(a,b=a){}</code>','<code>function f(a=a,b){}</code>','<code>function f(a=1,b=a*2){}</code>'], c:2},
+  {q:`With default parameters, you can reference:`, a:['Any later parameter','Only previous parameters','Global variables only','None'], c:1},
+  {q:`Rest parameter rules:`, a:['Can be anywhere','Must be first','Must be last and appears once','Not allowed with defaults'], c:2},
+  {q:`Spread operator is used to:`, a:['Collect arguments','Expand an iterable','Declare arrays','Clone objects only'], c:1},
+  {q:`Which is valid spread usage?`, a:['<code>Math.max(...[3,1,7])</code>','<code>...[1,2]</code> alone','<code>...x = 1</code>','<code>return ...arr;</code>'], c:0},
+  {q:`Arrow functions can be used with <code>new</code>:`, a:['Always','Only with parentheses','Never (not constructors)','Only in strict mode'], c:2},
+  {q:`Inside an arrow function, <code>this</code> is:`, a:['Dynamic (call-site)','Undefined','Lexically bound (from enclosing scope)','Always <code>window</code>'], c:2},
+  {q:`Arrow functions have:`, a:['Their own <code>arguments</code> object','No <code>arguments</code> binding','Implicit <code>window</code> arguments','Only rest params'], c:1},
+  {q:`Returning an object literal from a concise arrow body requires:`, a:['Nothing extra','Parentheses around the object','Using <code>return</code> only','It’s impossible'], c:1},
+  {q:`Enhanced object literals: property shorthand turns <code>{Title: Title}</code> into:`, a:['<code>{Title}</code>','<code>{Title: true}</code>','<code>{title}</code>','<code>{Title() {}}</code>'], c:0},
+  {q:`Concise method syntax is:`, a:['<code>say(){ ... }</code>','<code>say: function(){...}</code> only','<code>function say(){...}</code> only','Not supported'], c:0},
+  {q:`Computed property names inside literals use:`, a:['Dot notation','Square brackets','Angle brackets','Quotes only'], c:1},
+  {q:`What prints 9?`, a:['<code>Math.max([3,1,7,4,9])</code>','<code>Math.max(...[3,1,7,4,9])</code>','<code>Math.max.apply([3,1,7,4,9])</code>','<code>max(...)</code>'], c:1},
+  {q:`Global comparison: <code>var v=1; let l=2; console.log('v' in window, 'l' in window)</code>`, a:['<code>false true</code>','<code>true false</code>','<code>true true</code>','<code>false false</code>'], c:1},
+  {q:`Type of a template literal value: <code>typeof \`hi\`</code>`, a:['<code>object</code>','<code>string</code>','<code>template</code>','<code>literal</code>'], c:1},
+  {q:`Hoisting behavior: <pre>console.log(x); let x=2;</pre>`, a:['<code>undefined</code>','<code>2</code>','ReferenceError','TypeError'], c:2},
+  {q:`Combine arrays <code>a</code> and <code>b</code> into <code>c</code>:`, a:['<code>c=a+b</code>','<code>c=[...a,...b]</code>','<code>c=spread(a,b)</code>','<code>c=a.concat(...)</code> only'], c:1},
+  {q:`Which one declares a rest parameter?`, a:['<code>function f(...nums){}</code>','<code>function f(nums...){}</code>','<code>function f([...nums]){}</code>','<code>function f(...,nums){}</code>'], c:0},
+  {q:`Correct arrow returning object:`, a:['<code>() => {id:1}</code>','<code>() => ({id:1})</code>','<code>(() => {return id:1})</code>','<code>{() => id:1}</code>'], c:1},
+  {q:`Invalid default param (later used earlier):`, a:['<code>f(a=1,b=2)</code>','<code>f(a,b=a)</code>','<code>f(a=a,b)</code>','<code>f(a=1,b=a*2)</code>'], c:2},
+  {q:`Which does <em>not</em> create a global property in browsers?`, a:['<code>var x=1</code>','<code>function f(){}</code>','<code>let x=1</code>','Assigning <code>window.x</code>'], c:2},
+  {q:`<code>Object.keys(obj)</code> returns:`, a:['Array of keys','Iterator only','Set of keys','Number of keys'], c:0},
+  {q:`Which sorts numbers ascending?`, a:['<code>values.sort()</code>','<code>values.sort((a,b)=>a-b)</code>','<code>values.sort((a,b)=>b-a)</code>','<code>values.order()</code>'], c:1},
+];
+
+// 20 Output questions
+const OUTPUTS = [
+  {q:`let x=1; { let x=2; console.log(x); } console.log(x);`, a:'2 1'},
+  {q:`function f(a=10,b=a*2){ return b; } console.log(f()); console.log(f(5));`, a:'20 10'},
+  {q:`function g(a=b,b=2){}; try{ g(); }catch(e){ console.log(e.name); }`, a:'referenceerror'},
+  {q:`const arr=[3,1,7]; console.log(Math.max(...arr));`, a:'7'},
+  {q:`function sum(...nums){return nums.reduce((a,b)=>a+b,0)}; console.log(sum(3,1,6,3));`, a:'13'},
+  {q:`const obj={id:10,get(){ setTimeout(()=>console.log(this.id),0); }}; obj.get();`, a:'10'},
+  {q:`const obj={id:10,get(){ setTimeout(function(){console.log(this.id)},0); }}; obj.get();`, a:'undefined'},
+  {q:`const name='Nadia'; console.log(\`Hello, \${name}.\`.length);`, a:'13'},
+  {q:`console.log(\`a "quote" and 'single'\`.includes('quote'));`, a:'true'},
+  {q:`try{ console.log(a); let a=2; }catch(e){ console.log(e.name); }`, a:'referenceerror'},
+  {q:`var v=1; let l=2; console.log('v' in window, 'l' in window);`, a:'true false'},
+  {q:`let out=[]; for(let i=0;i<2;i++){ out.push(()=>i); } console.log(out[0](), out[1]());`, a:'0 1'},
+  {q:`try{ const A=()=>{}; new A(); }catch(e){ console.log(e.name); }`, a:'typeerror'},
+  {q:`(function(){ function outer(){ const f=()=>arguments.length; return f(1,2,3);} console.log(outer(10)); })();`, a:'1'},
+  {q:`const Title='ES6', version='2015'; const book={Title,version}; console.log(book.Title+'-'+book.version);`, a:'es6-2015'},
+  {q:`const key='name'; const o={ [key]:'Ali' }; console.log(o.name);`, a:'ali'},
+  {q:`const fn=()=>({a:1}); console.log(fn().a);`, a:'1'},
+  {q:`function getBase(){return 0.2} function price(p,d=getBase()){return p*d} console.log(price(1000));`, a:'200'},
+  {q:`const a=[1,2], b=[3,4]; const c=[...a,...b]; console.log(c.join('-'));`, a:'1-2-3-4'},
+  {q:`'use strict'; const o={x:1}; Object.freeze(o); try{o.x=2;}catch(e){console.log(o.x);}`, a:'1'},
+];
+
+// 5 Code questions (each has a test function)
+const CODES = [
+  {
+    title:'calc(op, ...nums)',
+    prompt:`Write <code>function calc(op, ...nums)</code> that supports:<br>
+    <code>"sum"</code> → sum of nums, <code>"mul"</code> → product, <code>"max"</code> → maximum (use spread). Return a number.`,
+    name:'calc',
+    starter:`function calc(op, ...nums){
+  // your code here
+}`,
+    test(fn){
+      try{
+        if(typeof fn!=='function') return 'Function not found';
+        const a = fn('sum',3,1,6,3)===13;
+        const b = fn('mul',2,3,4)===24;
+        const c = fn('max',3,9,7,4)===9;
+        return (a&&b&&c) || 'Fails on one of: sum/mul/max';
+      }catch(e){ return e.message; }
+    },
+    solution:`function calc(op, ...nums){
+  if(op==='sum') return nums.reduce((a,b)=>a+b,0);
+  if(op==='mul') return nums.reduce((a,b)=>a*b,1);
+  if(op==='max') return Math.max(...nums);
+  return NaN;
+}`
+  },
+  {
+    title:'makeProject(id, name, duration)',
+    prompt:`Return an object using <em>enhanced object literal</em> features with keys <code>projectId</code>, <code>projectName</code>, <code>duration</code> and a concise method <code>printData()</code> that returns <code>\`\${projectName} - \${duration}\`</code>.`,
+    name:'makeProject',
+    starter:`function makeProject(projectId, projectName, duration){
+  // return an object literal with the properties and a printData() method
+}`,
+    test(fn){
+      try{
+        const p = fn(10,'Alpha','3m');
+        if(!p || p.projectId!==10 || p.projectName!=='Alpha' || p.duration!=='3m') return 'Wrong shape';
+        if(typeof p.printData!=='function') return 'Missing printData()';
+        return p.printData()==='Alpha - 3m' || 'printData() returned wrong value';
+      }catch(e){ return e.message; }
+    },
+    solution:`function makeProject(projectId, projectName, duration){
+  return {
+    projectId, projectName, duration,
+    printData(){ return \`\${projectName} - \${duration}\`; }
+  };
+}`
+  },
+  {
+    title:'getTempItem = id => ({ id, name: "Temp" })',
+    prompt:`Create an arrow function assigned to <code>getTempItem</code> that returns an object <code>{ id, name: "Temp" }</code>.`,
+    name:'getTempItem',
+    starter:`// define: const getTempItem = id => ({ id, name: "Temp" });`,
+    test(fn){
+      try{
+        if(typeof window.getTempItem!=='function') return 'Arrow function not found';
+        const o = window.getTempItem(5);
+        return (o && o.id===5 && o.name==='Temp') || 'Wrong return value';
+      }catch(e){ return e.message; }
+    },
+    solution:`const getTempItem = id => ({ id, name: "Temp" });`
+  },
+  {
+    title:'maxMin(arr)',
+    prompt:`Return an object <code>{max, min}</code> using <code>Math.max</code>/<code>Math.min</code> with the spread operator.`,
+    name:'maxMin',
+    starter:`function maxMin(arr){
+  // your code here
+}`,
+    test(fn){
+      try{
+        const r = fn([3,9,1,7]);
+        return (r && r.max===9 && r.min===1) || 'Return {max:9,min:1} for [3,9,1,7]';
+      }catch(e){ return e.message; }
+    },
+    solution:`function maxMin(arr){
+  return { max: Math.max(...arr), min: Math.min(...arr) };
+}`
+  },
+  {
+    title:'swapPair([a,b])',
+    prompt:`Using destructuring, implement <code>swapPair</code> that accepts a 2-element array and returns a new array with elements swapped.`,
+    name:'swapPair',
+    starter:`function swapPair(pair){
+  // your code here
+}`,
+    test(fn){
+      try{
+        const r = fn([10,20]);
+        return (Array.isArray(r) && r[0]===20 && r[1]===10) || 'Expected [20,10]';
+      }catch(e){ return e.message; }
+    },
+    solution:`function swapPair([a,b]){ return [b,a]; }`
+  },
+];
+
+/* ---------- Rendering ---------- */
+function renderMCQ(){
+  const box = document.getElementById('mcqBox');
+  MCQS.forEach((m, i)=>{
+    const q = el('div',{class:'q'});
+    q.appendChild(el('h3',{},`${i+1}. ${m.q}`));
+    const c = el('div',{class:'choices'});
+    m.a.forEach((opt, j)=>{
+      const id=`m${i}_${j}`;
+      const lab = el('label',{},`
+        <input type="radio" name="mcq_${i}" id="${id}" value="${j}" />
+        <span>${opt}</span>
+      `);
+      c.appendChild(lab);
+    });
+    const reveal = el('button',{class:'reveal'},"Reveal answer");
+    const ans = el('div',{class:'ans'}, `<b>Correct:</b> ${escapeHtml(m.a[m.c])}`);
+    reveal.addEventListener('click',()=> ans.style.display = ans.style.display==='block'?'none':'block');
+    q.append(c,reveal,ans);
+    box.appendChild(q);
+  });
+}
+
+function renderOutput(){
+  const box = document.getElementById('outBox');
+  OUTPUTS.forEach((o,i)=>{
+    const q = el('div',{class:'q'});
+    q.appendChild(el('h3',{},`${i+1}.`));
+    q.appendChild(el('pre',{},escapeHtml(o.q)));
+    const row = el('div',{class:'irow'});
+    row.appendChild(el('input',{type:'text',placeholder:'Your output…',id:`out_${i}`}));
+    const reveal = el('button',{class:'reveal'},"Reveal answer");
+    const ans = el('div',{class:'ans'}, `<b>Answer:</b> <code>${escapeHtml(o.a)}</code>`);
+    reveal.addEventListener('click',()=> ans.style.display = ans.style.display==='block'?'none':'block');
+    q.append(row,reveal,ans);
+    box.appendChild(q);
+  });
+}
+
+function renderCode(){
+  const box = document.getElementById('codeBox');
+  CODES.forEach((c,i)=>{
+    const q = el('div',{class:'q'});
+    q.appendChild(el('h3',{},`${i+1}. ${c.title}`));
+    q.appendChild(el('div',{class:'small'},c.prompt));
+    const ta = el('textarea',{id:`code_${i}`,spellcheck:'false'}, c.starter || '');
+    const reveal = el('button',{class:'reveal'},"Reveal sample solution");
+    const ans = el('div',{class:'ans'}, `<b>Sample:</b><pre>${escapeHtml(c.solution)}</pre>`);
+    reveal.addEventListener('click',()=> ans.style.display = ans.style.display==='block'?'none':'block');
+    q.append(ta,reveal,ans);
+    box.appendChild(q);
+  });
+}
+
+renderMCQ(); renderOutput(); renderCode();
+
+/* ---------- Grading ---------- */
+function gradeMCQ(){
+  let score=0;
+  MCQS.forEach((m,i)=>{
+    const picked = document.querySelector(`input[name="mcq_${i}"]:checked`);
+    const nodes = document.querySelectorAll(`input[name="mcq_${i}"]`);
+    nodes.forEach(n => n.parentElement.classList.remove('ok','bad'));
+    if(picked){
+      const val = Number(picked.value);
+      if(val===m.c){ score++; picked.parentElement.classList.add('ok'); }
+      else{ picked.parentElement.classList.add('bad'); }
+    }
+  });
+  return score;
+}
+
+function gradeOutput(){
+  let score=0;
+  OUTPUTS.forEach((o,i)=>{
+    const inp = document.getElementById(`out_${i}`);
+    const correct = norm(o.a);
+    const got = norm(inp.value);
+    inp.classList.remove('ok','bad');
+    if(got && got===correct){ score++; inp.classList.add('ok'); }
+    else if(got){ inp.classList.add('bad'); }
+  });
+  return score;
+}
+
+function gradeCode(){
+  let score=0;
+  // Clear previous globals for safety across re-submits
+  // (We reload on Reset anyway)
+  CODES.forEach((c,i)=>{
+    const ta = document.getElementById(`code_${i}`);
+    const code = ta.value;
+    // Try to evaluate user code in the page scope
+    let result='(not run)';
+    try{
+      // eslint-disable-next-line no-eval
+      eval(code);
+      const fn = window[c.name];
+      const ok = c.test(fn);
+      if(ok===true){ score++; ta.classList.add('ok'); ta.classList.remove('bad'); }
+      else if(ok===false){ ta.classList.add('bad'); ta.classList.remove('ok'); }
+      else{
+        // ok is either true or a message string
+        if(ok===true) { score++; ta.classList.add('ok'); ta.classList.remove('bad'); }
+        else { ta.classList.add('bad'); ta.classList.remove('ok'); }
+      }
+    }catch(e){
+      ta.classList.add('bad'); ta.classList.remove('ok');
+    }
+  });
+  return score;
+}
+
+document.getElementById('submitAll').addEventListener('click', ()=>{
+  const m=gradeMCQ(), o=gradeOutput(), c=gradeCode();
+  updateChips(m,o,c);
+  // Smooth scroll to top of page chips to see the update
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('resetAll').addEventListener('click', ()=> location.reload());
+
+updateChips(0,0,0);
+</script>
+</body>
+</html>
